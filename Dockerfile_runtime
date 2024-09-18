@@ -1,0 +1,39 @@
+FROM php:8.3-fpm-alpine as base
+
+RUN apk add --no-cache \
+    zip \
+    libzip-dev \
+    freetype \
+    libjpeg-turbo \
+    libpng \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    nodejs \
+    npm \
+    && docker-php-ext-configure zip \
+    && docker-php-ext-install zip pdo pdo_mysql \
+    && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-enable gd
+
+
+RUN addgroup -g 1000 -S www && adduser -u 1000 -S www -G www
+WORKDIR /var/www/
+
+FROM base as build
+COPY --from=composer:2.7.6 /usr/bin/composer /usr/bin/composer
+COPY . /var/www
+
+FROM base as local
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+COPY --chown=www:www --from=build /var/www /var/www
+COPY --from=build /usr/bin/composer /usr/bin/composer
+USER www
+EXPOSE 9000
+
+FROM base as production
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+COPY --chown=www:www --from=build /var/www /var/www
+USER www
+EXPOSE 9000

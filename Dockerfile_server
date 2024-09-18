@@ -1,0 +1,4 @@
+FROM nginx:alpine
+
+COPY $PWD/.docker/nginx/templates /etc/nginx/templates
+COPY $PWD/public /var/www/public
