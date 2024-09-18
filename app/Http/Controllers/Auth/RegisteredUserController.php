@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +20,7 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): Response
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -36,6 +38,16 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return response()->noContent();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json(
+            [
+                'message' => 'Registration successful.',
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'data' => UserResource::make($user)
+            ],
+            status: 201
+        );
     }
 }
