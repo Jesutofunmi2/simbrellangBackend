@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum Status: string
 {
-    case TODO = 'To Do';
-    case PROGRESS = 'In Progress';
-    case COMPLETED = 'Completed';
+    case TODO = 'TODO';
+    case PROGRESS = 'PROGRESS';
+    case COMPLETED = 'COMPLETED';
 }
