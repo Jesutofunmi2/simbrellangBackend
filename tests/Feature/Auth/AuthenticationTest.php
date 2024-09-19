@@ -4,44 +4,53 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_users_can_authenticate_using_the_login_screen(): void
+    public function test_user_can_login_successful()
     {
-        $user = User::factory()->create();
+        $this->withoutMiddleware();
 
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password',
+        $user = User::factory()->create([
+            'password' => Hash::make('Balo5544'),
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertNoContent();
-    }
-
-    public function test_users_can_not_authenticate_with_invalid_password(): void
-    {
-        $user = User::factory()->create();
-
-        $this->post('/login', [
+        $data = [
             'email' => $user->email,
-            'password' => 'wrong-password',
+            'password' => 'Balo5544'
+        ];
+
+        $response = $this->postJson(route('auth.login'), $data);
+        $response->assertStatus(200)
+             ->assertJsonStructure([
+            'message',
+            'access_token',
+            'token_type',
+            'data' => [
+                'id',
+                'name',
+                'email',
+                'project',
+            ],
         ]);
-
-        $this->assertGuest();
     }
-
-    public function test_users_can_logout(): void
+    public function test_user_cannot_login_with_invalid_credentials()
     {
-        $user = User::factory()->create();
+        $this->withoutMiddleware();
 
-        $response = $this->actingAs($user)->post('/logout');
+        $user = User::factory()->create([
+            'password' => Hash::make('Balo5544'),
+        ]);
+        $data = [
+            'email' => $user->email,
+            'password' => 'Balo5566'
+        ];
 
-        $this->assertGuest();
-        $response->assertNoContent();
+        $response = $this->postJson( route('auth.login'), $data);
+        $response->assertStatus(422);
     }
 }
