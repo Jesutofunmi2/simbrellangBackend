@@ -6,16 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AssignRequest;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Mail\TaskUpdatedNotification;
+use App\Services\TaskService;
+use Illuminate\Support\Facades\Mail;
 
 class TeamController extends Controller
 {
+
     public function assignUserToProject(AssignRequest $request, $projectId): mixed
     {
         $project = Project::findOrFail($projectId);
         $user = User::findOrFail($request->user_id);
 
         $project->users()->attach($user->id, ['role' => $request->role]);
+
+        foreach ($project->tasks as $task) {
+            $task->update(['assigned_user_id' => $user->id]);
+            
+            Mail::to($user->email)->send(new TaskUpdatedNotification($task));
+        }
 
         return response()->json([
             'message' => 'User assigned to project successfully',

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -20,5 +21,7 @@ Route::prefix('/v1')
 
                 Route::post('/projects/{project}/assign-user', [TeamController::class, 'assignUserToProject']);
                 Route::delete('/projects/{project}/remove-user/{user}', [TeamController::class, 'removeUserFromProject']);
+
+                Route::post('/tasks/{task}/notify', [NotificationController::class, 'sendTaskNotification']);
         });
 });

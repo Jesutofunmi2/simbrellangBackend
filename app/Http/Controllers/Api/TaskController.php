@@ -11,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Mail\TaskUpdatedNotification;
+use Illuminate\Support\Facades\Mail;
 
 class TaskController extends Controller
 {
@@ -44,6 +46,11 @@ class TaskController extends Controller
     public function store(TaskRequest $request): JsonResource
     {
         $task = $this->taskService->createTask($request->validated());
+        
+        if ($request->input('assigned_user_id')) {
+            Mail::to($task->user->email)->send(new TaskUpdatedNotification($task));
+        }
+        
         return TaskResource::make($task);
     }
 
@@ -55,10 +62,13 @@ class TaskController extends Controller
         try {
             $task = Task::with('project', 'user')->findOrFail($id);
             return TaskResource::make($task);
+
         } catch (ModelNotFoundException $e) {
+
             return response()->json([
                 'message' => 'Task not found or invalid content.',
             ], 404);
+
         }
     }
 
@@ -71,12 +81,19 @@ class TaskController extends Controller
             $task = Task::findOrFail($id);
 
             $taskUpdated = $this->taskService->updateTask($request->validated(), $task);
+            
+            if (!$task->user) {
+                Mail::to($task->user->email)->send(new TaskUpdatedNotification($task));
+            }
 
             return TaskResource::make($taskUpdated);
+
         } catch (ModelNotFoundException $e) {
+
             return response()->json([
                 'message' => 'Task not found or invalid content.',
             ], 404);
+
         }
     }
 
