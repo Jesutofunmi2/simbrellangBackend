@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\AssignRequest;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class TeamController extends Controller
 {
-    public function assignUserToProject(Request $request, $projectId)
+    public function assignUserToProject(AssignRequest $request, $projectId): mixed
     {
         $project = Project::findOrFail($projectId);
         $user = User::findOrFail($request->user_id);
@@ -22,7 +23,7 @@ class TeamController extends Controller
         ], 201);
     }
 
-    public function removeUserFromProject($projectId, $userId)
+    public function removeUserFromProject($projectId, $userId): mixed 
     {
         $project = Project::findOrFail($projectId);
         $project->users()->detach($userId);

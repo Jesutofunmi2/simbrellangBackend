@@ -46,7 +46,7 @@ class ProjectController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id): mixed
     {
         try {
             $project = Project::with('tasks')->findOrFail($id);
@@ -61,7 +61,7 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ProjectRequest $request, string $id)
+    public function update(ProjectRequest $request, string $id): mixed
     {
         try {
             $project = Project::findOrFail($id);
